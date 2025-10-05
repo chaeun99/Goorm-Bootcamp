@@ -1,0 +1,105 @@
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>디지털 용돈 기입장</title>
+</head>
+<body>
+<h1>💰 [[${currentMonth.getYear()}]]년 [[${currentMonth.getMonthValue()}]]월 용돈 기입장</h1>
+
+<div th:if="${successMessage}" th:text="${successMessage}" class="message-box success"></div>
+<div th:if="${errorMessage}" th:text="${errorMessage}" class="message-box error"></div>
+
+<div class="nav-month" style="margin-bottom: 20px; text-align: center;">
+    <a th:href="@{/(year=${prevMonth.getYear()}, month=${prevMonth.getMonthValue()})}">◀️ 이전 달</a>
+    <span th:text="|[[${currentMonth.getYear()}]]년 [[${currentMonth.getMonthValue()}]]월|" style="font-size: 1.2em; font-weight: bold; margin: 0 15px;"></span>
+    <a th:href="@{/(year=${nextMonth.getYear()}, month=${nextMonth.getMonthValue()})}">다음 달 ▶️</a>
+</div>
+
+<h2>📊 [[${currentMonth.getMonthValue()}]]월 지출 통계</h2>
+<div th:if="${monthTotal.compareTo(T(java.math.BigDecimal).ZERO) <= 0}">
+    <p>이번 달 지출 내역이 없습니다.</p>
+</div>
+<div th:unless="${monthTotal.compareTo(T(java.math.BigDecimal).ZERO) <= 0}">
+    <p>
+        총 지출: <span th:text="${#numbers.formatDecimal(monthTotal, 0, 'COMMA', 0, 'POINT')} + '원'"></span> /
+        일일 평균: <span th:text="${#numbers.formatDecimal(dailyAverage, 0, 'COMMA', 0, 'POINT')} + '원'"></span> /
+        가장 많이 쓴 분야: <span th:text="${topCategory}"></span>
+    </p>
+
+    <h3>카테고리별 지출 현황</h3>
+    <table style="width: 50%;">
+        <thead>
+        <tr>
+            <th>카테고리</th>
+            <th>지출액</th>
+            <th>비율</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="entry : ${categoryTotals}">
+            <td th:text="${entry.key}">식비</td>
+            <td th:text="${#numbers.formatDecimal(entry.value, 0, 'COMMA', 0, 'POINT')} + '원'">11,000원</td>
+            <td th:text="${categoryPercentages.get(entry.key)}">46%</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<h2>➕ 지출 내역 추가</h2>
+<form th:action="@{/add}" method="post">
+    <label for="date">날짜:</label>
+    <input type="date" id="date" name="date" th:value="${T(java.time.LocalDate).now()}" required><br>
+
+    <label for="description">내용:</label>
+    <input type="text" id="description" name="description" placeholder="점심 식사" required><br>
+
+    <label for="amount">금액:</label>
+    <input type="number" id="amount" name="amount" placeholder="4500" required min="1" step="1"><br>
+
+    <label for="category">분류:</label>
+    <select id="category" name="category" required>
+        <option value="식비">식비</option>
+        <option value="교통비">교통비</option>
+        <option value="간식">간식</option>
+        <option value="쇼핑">쇼핑</option>
+        <option value="문화생활">문화생활</option>
+        <option value="기타">기타</option>
+    </select><br>
+
+    <label for="memo">메모:</label>
+    <textarea id="memo" name="memo" placeholder="선택사항"></textarea><br>
+
+    <button type="submit" style="padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px;">내역 추가</button>
+</form>
+
+<h2>📋 [[${currentMonth.getMonthValue()}]]월 내역</h2>
+<table th:if="${!#lists.isEmpty(entries)}">
+    <thead>
+    <tr>
+        <th>날짜</th>
+        <th>카테고리</th>
+        <th>내용</th>
+        <th>금액</th>
+        <th>메모</th>
+        <th>관리</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="entry : ${entries}">
+        <td th:text="${entry.formattedDate}">10-06</td>
+        <td th:text="${entry.category}">식비</td>
+        <td th:text="${entry.description}">학식 점심</td>
+        <td th:text="${entry.formattedAmount}">4,500원</td>
+        <td th:text="${entry.memo}">친구와 함께</td>
+        <td>
+            <a th:href="@{/delete/{id}(id=${entry.id})}"
+               onclick="return confirm('정말로 이 내역을 삭제하시겠습니까?')"
+               style="color: red; text-decoration: none;">[삭제]</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<p th:if="${#lists.isEmpty(entries)}">현재 [[${currentMonth.getMonthValue()}]]월의 지출 내역이 없습니다.</p>
+
+</body>
+</html>
