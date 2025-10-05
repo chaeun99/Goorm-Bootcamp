@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>프로그래밍 언어 선호도 투표</title>
+</head>
+<body>
+
+<h1>프로그래밍 언어 선호도 투표</h1>
+
+<div class="vote-section">
+    <h2>[투표하기]</h2>
+
+    <div th:each="option : ${options}" class="option-item">
+        <span th:text="${option.optionName}">항목 이름</span>
+
+        <form th:action="@{/vote}" method="post">
+            <input type="hidden" name="option" th:value="${option.optionName}">
+            <button type="submit">[투표]</button>
+        </form>
+    </div>
+</div>
+
+<div class="result-section">
+    <h2>[실시간 결과]</h2>
+
+    <div th:each="result : ${results}"
+         th:classappend="${result.leading} ? 'leading' : ''"
+         class="result-item">
+
+        <span th:if="${result.leading}" style="margin-right: 5px;">🏆</span>
+
+        <span th:text="${result.optionName}">Java</span>
+
+        <span th:text="|: ${result.votes}표 (${result.percentage}%)|"> : 5표 (50%)</span>
+    </div>
+
+    <hr>
+    <p><strong>총 투표수:</strong> <span th:text="${totalVotes}">0</span>표</p>
+</div>
+
+</body>
+</html>
