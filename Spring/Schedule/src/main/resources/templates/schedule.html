@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>개인 시간표 관리자</title>
+</head>
+<body>
+
+<h1>🗓 개인 주간 시간표 관리자</h1>
+
+<p th:if="${successMessage}" style="color: green;" th:text="${successMessage}"></p>
+<p th:if="${errorMessage}" style="color: red;" th:text="${errorMessage}"></p>
+
+<h2>새 일정 추가</h2>
+<form th:action="@{/add}" method="post" th:object="${newEntry}">
+    <table>
+        <tr>
+            <td><label for="title">제목:</label></td>
+            <td><input type="text" id="title" th:field="*{title}" required></td>
+        </tr>
+        <tr>
+            <td><label for="dayOfWeek">요일:</label></td>
+            <td>
+                <select id="dayOfWeek" th:field="*{dayOfWeek}" required>
+                    <option value="" disabled selected>선택</option>
+                    <option th:each="day : ${daysOfWeek}" th:value="${day}">
+                        <span th:switch="${day}">
+                            <span th:case="'MON'">월요일</span>
+                            <span th:case="'TUE'">화요일</span>
+                            <span th:case="'WED'">수요일</span>
+                            <span th:case="'THU'">목요일</span>
+                            <span th:case="'FRI'">금요일</span>
+                        </span>
+                    </option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td><label for="startTime">시작 시간:</label></td>
+            <td><input type="time" id="startTime" th:field="*{startTime}" required></td>
+        </tr>
+        <tr>
+            <td><label for="endTime">종료 시간:</label></td>
+            <td><input type="time" id="endTime" th:field="*{endTime}" required></td>
+        </tr>
+        <tr>
+            <td><label for="location">장소:</label></td>
+            <td><input type="text" id="location" th:field="*{location}" required></td>
+        </tr>
+        <tr>
+            <td><label for="memo">메모:</label></td>
+            <td><textarea id="memo" th:field="*{memo}" rows="1"></textarea></td>
+        </tr>
+    </table>
+    <button type="submit">일정 추가하기</button>
+</form>
+
+<hr>
+
+<h2>📊주간 시간표 (30분 단위)</h2>
+<table border="1" style="border-collapse: collapse;">
+    <thead>
+    <tr>
+        <th>시간</th>
+        <th th:each="day : ${daysOfWeek}">
+            <span th:switch="${day}">
+                <span th:case="'MON'">월요일</span>
+                <span th:case="'TUE'">화요일</span>
+                <span th:case="'WED'">수요일</span>
+                <span th:case="'THU'">목요일</span>
+                <span th:case="'FRI'">금요일</span>
+            </span>
+        </th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr th:each="timeSlot : ${timeSlots}">
+        <th><span th:text="${timeSlot}">09:00</span></th>
+
+        <td th:each="day : ${daysOfWeek}" th:with="block=${weeklyTable.get(day).get(timeSlot)}">
+
+            <div th:if="${block != null and block.entry != null}"
+                 th:attr="rowspan=${block.rowspan}"
+                 th:style="'background-color: lightgray; border: 1px solid black;'"
+                 th:rowspan="${block.rowspan}">
+
+                <strong th:text="${block.entry.title}">제목</strong>
+                <span th:text="' (' + ${block.entry.timeRange} + ', ' + ${block.entry.location} + ')'"></span>
+            </div>
+
+            <th:block th:if="${block != null and block.entry == null}" th:remove="all"></th:block>
+
+            <th:block th:if="${block == null}">&nbsp;</th:block>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<hr>
+
+<h2>전체 일정 목록</h2>
+<p>총 등록된 일정: <span th:text="${scheduleCount}">0</span> 건</p>
+
+<div th:if="${allSchedules.isEmpty()}">
+    <p>현재 등록된 일정이 없습니다.</p>
+</div>
+
+<ul th:unless="${allSchedules.isEmpty()}">
+    <li th:each="entry : ${allSchedules}">
+        <span th:text="${entry.koreanDay + ' ' + entry.timeRange + ' ' + entry.title + ' (' + entry.location + ')'}"></span>
+
+        <form th:action="@{/delete/{id}(id=${entry.id})}" method="post" style="display: inline;">
+            <button type="submit" style="color: red;">[삭제]</button>
+        </form>
+    </li>
+</ul>
+
+</body>
+</html>
