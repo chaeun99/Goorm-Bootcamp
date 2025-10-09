@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: simple-todo
+
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8080
